@@ -156,7 +156,7 @@ const logout = () => {
                 </div>
             </div>
 
-            <!-- Modal de confirmación de eliminación -->
+      
             <div v-if="showConfirm" class="modal-backdrop">
                 <div class="modal confirm-modal">
                     <h3>¿Eliminar producto?</h3>
