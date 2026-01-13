@@ -8,8 +8,8 @@ const imageUrl = (p) => {
   if (!p) return ''
   if (/^https?:\/\//.test(p)) return p
   if (p.startsWith('/')) return p
-  if (p.startsWith('storage/')) return 'http://localhost:8000/' + p
-  if (p.startsWith('products/')) return 'http://localhost:8000/storage/' + p
+  if (p.startsWith('storage/')) return 'https://backend-cizt-lax5.onrender.com/' + p
+  if (p.startsWith('products/')) return 'https://backend-cizt-lax5.onrender.com/' + p
   return p
 }
 </script>
