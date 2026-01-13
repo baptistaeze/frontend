@@ -1,8 +1,10 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import api from '../services/api'
 import { useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
+import useApi from '../composables/useApi'
+
+const { get } = useApi()
 
 const baseHost = 'http://127.0.0.1:8000/'
 
@@ -40,14 +42,18 @@ const form = ref({
  image:null
 })
 
-const load = async()=>{
- const res = await api.get('/products')
- products.value = res.data.data
+const load = async () => {
+  get('/products')
+    .then(data => { products.value = data.data })
+    .catch(e => { /* manejar error */ })
+    .finally(() => {})
 }
 
-const loadCategories = async()=>{
- const res = await api.get('/categories')
- categories.value = res.data
+const loadCategories = async () => {
+  get('/categories')
+    .then(data => { categories.value = data })
+    .catch(e => { /* manejar error */ })
+    .finally(() => {})
 }
 
 onMounted(()=>{

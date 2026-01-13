@@ -1,9 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import api from '../services/api'
 import { useRouter } from 'vue-router'
 import ProductGrid from '../components/ProductGrid.vue'
 import AppHeader from '../components/AppHeader.vue'
+import useApi from '../composables/useApi'
+
+const { get, post, del } = useApi()
 const router = useRouter()
 
 const baseHost = 'http://localhost:8000/'
@@ -34,21 +36,17 @@ const form = ref({
 })
 
 const load = async () => {
-    try {
-        const res = await api.get('/products')
-        products.value = res.data.data
-    } catch (e) {
-        showError(e)
-    }
+    get('/products')
+        .then(data => { products.value = data.data })
+        .catch(e => { showError(e) })
+        .finally(() => {})
 }
 
 const loadCategories = async () => {
-    try {
-        const res = await api.get('/categories')
-        categories.value = res.data
-    } catch (e) {
-        showError(e)
-    }
+    get('/categories')
+        .then(data => { categories.value = data })
+        .catch(e => { showError(e) })
+        .finally(() => {})
 }
 
 onMounted(()=>{
@@ -69,25 +67,24 @@ const setImage = e => {
 
 const save = async () => {
     loading.value = true
-    try {
-        const fd = new FormData()
-        for(const k in form.value){
-
-            if(k === 'image' && !form.value.image) continue
-            fd.append(k, form.value[k])
-        }
-        if(form.value.id){
-            await api.post('/products/'+form.value.id+'?_method=PUT', fd)
-        } else {
-            await api.post('/products', fd)
-        }
-        showForm.value = false
-        await load()
-    } catch (e) {
-        showError(e)
-    } finally {
-        loading.value = false
+    const fd = new FormData()
+    for(const k in form.value){
+        if(k === 'image' && !form.value.image) continue
+        fd.append(k, form.value[k])
     }
+    let request
+    if(form.value.id){
+        request = post('/products/'+form.value.id+'?_method=PUT', fd)
+    } else {
+        request = post('/products', fd)
+    }
+    request
+        .then(() => {
+            showForm.value = false
+            load()
+        })
+        .catch(e => { showError(e) })
+        .finally(() => { loading.value = false })
 }
 
 const edit = p => {
@@ -101,16 +98,17 @@ const askRemove = (id) => {
 }
 
 const remove = async () => {
-    try {
-        await api.delete('/products/' + productToDelete.value)
-        showConfirm.value = false
-        productToDelete.value = null
-        await load()
-    } catch (e) {
-        showError(e)
-        showConfirm.value = false
-        productToDelete.value = null
-    }
+    del('/products/' + productToDelete.value)
+        .then(() => {
+            showConfirm.value = false
+            productToDelete.value = null
+            load()
+        })
+        .catch(e => {
+            showError(e)
+            showConfirm.value = false
+            productToDelete.value = null
+        })
 }
 
 const showError = (e) => {
@@ -120,7 +118,7 @@ const showError = (e) => {
 
 const logout = () => {
     localStorage.removeItem('token')
-    delete api.defaults.headers.common['Authorization']
+    delete window.axios?.defaults.headers.common['Authorization']
     router.push('/login')
 }
 </script>
